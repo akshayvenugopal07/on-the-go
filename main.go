@@ -1,12 +1,15 @@
 package main
 
 import (
-	"net/http"
-
+	"example.com/personweb/models"
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
 )
 
 func main() {
+	err := models.ConnectDatabase()
+	checkErr(err)
 	r := gin.Default()
 
 	// API v1
@@ -25,8 +28,23 @@ func main() {
 	r.Run()
 }
 
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func getPersons(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "getPersons Called"})
+
+	persons, err := models.GetPersons(10)
+	checkErr(err)
+
+	if persons == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No Records Found"})
+		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{"data": persons})
+	}
 }
 
 func getPersonById(c *gin.Context) {
